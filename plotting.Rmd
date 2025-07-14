@@ -9,14 +9,14 @@ editor_options:
 
 
 #### Reading in the data
-```{r}
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 library(readr)
 wnba_college <- read_csv("wnba_college.csv")
 
 ```
 
 #### Formatting Data to be sociomatrix
-```{r}
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 
 wnba_college <-wnba_college[!is.na(wnba_college$college_1),]
 
@@ -89,7 +89,7 @@ for (i in 1:n){
 
 
 now installing ggraph and trying to visualize largest component
-```{r}
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 
 library(ggraph)
 library(tidygraph)
@@ -131,6 +131,8 @@ my_plot <- ggraph(connected_graph , layout = "stress") + # Use a layout algorith
   geom_node_text(aes(label = name ), size =3.5,repel = TRUE) + # Add labels from the 'name' column
   theme_graph() # Use a clean theme for graph plotting
 
+my_plot
+
 # save as high res
 
 ggsave("my_high_res_plot_largest_component.png", 
@@ -143,7 +145,7 @@ ggsave("my_high_res_plot_largest_component.png",
 
 going to graph all, those in a group of 3+, those in dyads, and those who are isolates
 
-```{r}
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 
 library(igraph)
 library(ggraph)
@@ -189,6 +191,8 @@ my_plot_all<- ggraph(graph_obj , layout = "kk") + # Use a layout algorithm (e.g.
   theme(legend.position="none")
 
 
+my_plot_all
+
 # 3. Plot the graph with node labels
 my_plot_3plus <- ggraph(graph_3plus , layout = "kk") + # Use a layout algorithm (e.g., "stress")
     geom_edge_arc(strength = 0.2, width = 0.5, alpha = 0.15) + # Add edges
@@ -196,6 +200,8 @@ my_plot_3plus <- ggraph(graph_3plus , layout = "kk") + # Use a layout algorithm 
   geom_node_text(aes(label = name ), size =3.5,repel = TRUE) + # Add labels from the 'name' column
   theme_graph()#+ # Use a clean theme for graph plotting
   #theme(legend.position="none")
+
+my_plot_3plus
 
 # 3. Plot the graph with node labels
 my_plot_2 <- ggraph(graph_2 , layout = "stress") + # Use a layout algorithm (e.g., "stress")
@@ -205,6 +211,8 @@ my_plot_2 <- ggraph(graph_2 , layout = "stress") + # Use a layout algorithm (e.g
   theme_graph()#+ # Use a clean theme for graph plotting
   #theme(legend.position="none")
 
+my_plot_2
+
 # 3. Plot the graph with node labels
 my_plot_1 <- ggraph(graph_1 , layout = "kk") + # Use a layout algorithm (e.g., "stress")
     geom_edge_arc(strength = 0.2, width = 0.5, alpha = 0.15) + # Add edges
@@ -212,6 +220,8 @@ my_plot_1 <- ggraph(graph_1 , layout = "kk") + # Use a layout algorithm (e.g., "
   geom_node_text(aes(label = name ), size =3.5,repel = TRUE) + # Add labels from the 'name' column
   theme_graph()#+ # Use a clean theme for graph plotting
   #theme(legend.position="none")
+
+my_plot_1
 
 # save as high res
 
