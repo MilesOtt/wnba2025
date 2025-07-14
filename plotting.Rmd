@@ -1,0 +1,245 @@
+---
+title: "wnba college overlap"
+author: "Miles Ott"
+date: "7/12/2025"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+#### Reading in the data
+```{r}
+library(readr)
+wnba_college <- read_csv("wnba_college.csv")
+
+```
+
+#### Formatting Data to be sociomatrix
+```{r}
+
+wnba_college <-wnba_college[!is.na(wnba_college$college_1),]
+
+n<-dim(wnba_college)[1]
+sm<-matrix(rep(0, n*n),nrow=n)
+
+
+for (i in 1:n){
+  for (j in 1:n){
+    if (((wnba_college$college_1[i] == wnba_college$college_1[j])  &
+        (length(intersect(wnba_college$college_1_start_year[i]:wnba_college$college_1_end_year[i], wnba_college$college_1_start_year[j]:wnba_college$college_1_end_year[j]) )>=1)) 
+        
+        )sm[i,j]=1
+    
+    
+     
+    if (!is.na(wnba_college$college_2[i])){
+      
+    
+    if (((wnba_college$college_2[i] == wnba_college$college_1[j])  &
+        (length(intersect(wnba_college$college_2_start_year[i]:wnba_college$college_2_end_year[i], wnba_college$college_1_start_year[j]:wnba_college$college_1_end_year[j]) )>=1)) 
+        
+    )sm[i,j]=1}
+    
+        if (!is.na(wnba_college$college_3[i])){
+      
+    
+    if (((wnba_college$college_3[i] == wnba_college$college_1[j])  &
+        (length(intersect(wnba_college$college_3_start_year[i]:wnba_college$college_3_end_year[i], wnba_college$college_1_start_year[j]:wnba_college$college_1_end_year[j]) )>=1)) 
+        
+    )sm[i,j]=1}
+    
+    
+        if (!is.na(wnba_college$college_2[i]) & !is.na(wnba_college$college_2[j])){
+      
+    
+    if (((wnba_college$college_2[i] == wnba_college$college_2[j])  &
+        (length(intersect(wnba_college$college_2_start_year[i]:wnba_college$college_2_end_year[i], wnba_college$college_2_start_year[j]:wnba_college$college_2_end_year[j]) )>=1)) 
+        
+    )sm[i,j]=1}
+    
+    if (!is.na(wnba_college$college_2[i]) & !is.na(wnba_college$college_3[j])){
+      
+    
+    if (((wnba_college$college_2[i] == wnba_college$college_3[j])  &
+        (length(intersect(wnba_college$college_2_start_year[i]:wnba_college$college_2_end_year[i], wnba_college$college_3_start_year[j]:wnba_college$college_3_end_year[j]) )>=1)) 
+        
+    )sm[i,j]=1}
+    
+    if (!is.na(wnba_college$college_3[i]) & !is.na(wnba_college$college_3[j])){
+      
+    
+    if (((wnba_college$college_3[i] == wnba_college$college_3[j])  &
+        (length(intersect(wnba_college$college_3_start_year[i]:wnba_college$college_3_end_year[i], wnba_college$college_3_start_year[j]:wnba_college$college_3_end_year[j]) )>=1)) 
+        
+    )sm[i,j]=1}
+    
+    if (i==j){sm[i,j]=0}
+    
+    
+  }
+  
+  
+}
+
+```
+
+
+
+
+
+now installing ggraph and trying to visualize largest component
+```{r}
+
+library(ggraph)
+library(tidygraph)
+library(dplyr)
+library(stringr)
+
+
+splits <- str_split_fixed(wnba_college$`Basketball Player`, " ", 2)
+
+# Reassemble the names
+new_names <- paste(splits[,2], splits[,1])
+
+
+
+graph_obj <- as_tbl_graph(sm, directed = FALSE)
+
+# 2. Add labels to the nodes within the graph object (if not already present)
+# In this case, we'll create a 'name' column for the labels
+graph_obj <- graph_obj %>%
+  activate(nodes) %>% # Switch context to node data
+  mutate(name = new_names,
+         team = wnba_college$college_1,
+         team2 = wnba_college$college_2) # Create a 'name' column for labels
+
+
+# Filter out isolated nodes before plotting
+connected_graph <- graph_obj %>%
+  activate(nodes) %>%
+  #filter(!node_is_isolated()) %>%
+  filter(team %in% c('UConn', 'Duke University') | team2 %in% c('UConn', 'Duke University'))%>%
+  filter(team != 'University of Maryland')
+
+
+
+# 3. Plot the graph with node labels
+my_plot <- ggraph(connected_graph , layout = "stress") + # Use a layout algorithm (e.g., "stress")
+    geom_edge_arc(strength = 0.2, width = 0.5, alpha = 0.15) + # Add edges
+  geom_node_point(aes(color = team), size = 5) + # Add nodes as points
+  geom_node_text(aes(label = name ), size =3.5,repel = TRUE) + # Add labels from the 'name' column
+  theme_graph() # Use a clean theme for graph plotting
+
+# save as high res
+
+ggsave("my_high_res_plot_largest_component.png", 
+       plot = my_plot, 
+       width = 10,       # Adjust width as needed (e.g., in inches or centimeters)
+       height = 8,       # Adjust height as needed
+       dpi = 400)      # Set a high DPI (e.g., 300, 600, or higher)
+
+```
+
+going to graph those in a group of 3+
+
+```{r}
+
+library(igraph)
+library(ggraph)
+library(tidygraph)
+
+components <- components(graph_obj)
+# Get the size of each component
+component_sizes <- components$csize
+
+# Get the membership of each vertex
+vertex_membership <- components$membership
+
+
+vertex_ids = 1:length(component_sizes)
+vertex_ids_3plus = vertex_ids[component_sizes >=3]
+vertex_ids_2 = vertex_ids[component_sizes ==2]
+vertex_ids_1 = vertex_ids[component_sizes ==1]
+
+# 2. Add column for component_ids
+graph_obj <- graph_obj %>%
+  activate(nodes) %>% # Switch context to node data
+  mutate(vertex_membership =vertex_membership ) 
+
+graph_3plus =graph_obj%>%
+  activate(nodes)%>%
+  filter(vertex_membership %in% vertex_ids_3plus)
+
+
+graph_2 =graph_obj%>%
+  activate(nodes)%>%
+  filter(vertex_membership %in% vertex_ids_2)
+
+graph_1 =graph_obj%>%
+  activate(nodes)%>%
+  filter(vertex_membership %in% vertex_ids_1)
+
+# 3. Plot the graph with node labels
+my_plot_all<- ggraph(graph_obj , layout = "kk") + # Use a layout algorithm (e.g., "stress")
+    geom_edge_arc(strength = 0.2, width = 0.5, alpha = 0.15) + # Add edges
+  geom_node_point(aes(color = team), size = 5) + # Add nodes as points
+  geom_node_text(aes(label = name ), size =3.5,repel = TRUE) + # Add labels from the 'name' column
+  theme_graph()+ # Use a clean theme for graph plotting
+  theme(legend.position="none")
+
+
+# 3. Plot the graph with node labels
+my_plot_3plus <- ggraph(graph_3plus , layout = "kk") + # Use a layout algorithm (e.g., "stress")
+    geom_edge_arc(strength = 0.2, width = 0.5, alpha = 0.15) + # Add edges
+  geom_node_point(aes(color = team), size = 5) + # Add nodes as points
+  geom_node_text(aes(label = name ), size =3.5,repel = TRUE) + # Add labels from the 'name' column
+  theme_graph()#+ # Use a clean theme for graph plotting
+  #theme(legend.position="none")
+
+# 3. Plot the graph with node labels
+my_plot_2 <- ggraph(graph_2 , layout = "stress") + # Use a layout algorithm (e.g., "stress")
+    geom_edge_link(width = 0.5, alpha = 0.15) + # Add edges
+  geom_node_point(aes(color = team), size = 5) + # Add nodes as points
+  geom_node_text(aes(label = name ), size =3.5,repel = TRUE) + # Add labels from the 'name' column
+  theme_graph()#+ # Use a clean theme for graph plotting
+  #theme(legend.position="none")
+
+# 3. Plot the graph with node labels
+my_plot_1 <- ggraph(graph_1 , layout = "kk") + # Use a layout algorithm (e.g., "stress")
+    geom_edge_arc(strength = 0.2, width = 0.5, alpha = 0.15) + # Add edges
+  geom_node_point(aes(color = team), size = 5) + # Add nodes as points
+  geom_node_text(aes(label = name ), size =3.5,repel = TRUE) + # Add labels from the 'name' column
+  theme_graph()#+ # Use a clean theme for graph plotting
+  #theme(legend.position="none")
+
+# save as high res
+
+
+ggsave("my_high_res_plot_all.png", 
+       plot = my_plot_all, 
+       width = 10,       # Adjust width as needed (e.g., in inches or centimeters)
+       height = 8,       # Adjust height as needed
+       dpi = 400)      # Set a high DPI (e.g., 300, 600, or higher)
+
+ggsave("my_high_res_plot_3plus.png", 
+       plot = my_plot_3plus, 
+       width = 10,       # Adjust width as needed (e.g., in inches or centimeters)
+       height = 8,       # Adjust height as needed
+       dpi = 400)      # Set a high DPI (e.g., 300, 600, or higher)
+
+
+ggsave("my_high_res_plot_2.png", 
+       plot = my_plot_2, 
+       width = 10,       # Adjust width as needed (e.g., in inches or centimeters)
+       height = 8,       # Adjust height as needed
+       dpi = 400)      # Set a high DPI (e.g., 300, 600, or higher)
+
+ggsave("my_high_res_plot_1.png", 
+       plot = my_plot_1, 
+       width = 10,       # Adjust width as needed (e.g., in inches or centimeters)
+       height = 8,       # Adjust height as needed
+       dpi = 400)      # Set a high DPI (e.g., 300, 600, or higher)
+
+```
+
