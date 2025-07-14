@@ -141,7 +141,7 @@ ggsave("my_high_res_plot_largest_component.png",
 
 ```
 
-going to graph those in a group of 3+
+going to graph all, those in a group of 3+, those in dyads, and those who are isolates
 
 ```{r}
 
