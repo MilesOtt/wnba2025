@@ -15,6 +15,15 @@ wnba_college <- read_csv("wnba_college.csv")
 
 ```
 
+### checking the college names
+```{r}
+colleges<- c(wnba_college$college_1, wnba_college$college_2, wnba_college$college_3)
+
+table(colleges)
+```
+
+
+
 #### Formatting Data to be sociomatrix
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 
@@ -228,26 +237,26 @@ my_plot_1
 
 ggsave("my_high_res_plot_all.png", 
        plot = my_plot_all, 
-       width = 10,       # Adjust width as needed (e.g., in inches or centimeters)
+       width = 12,       # Adjust width as needed (e.g., in inches or centimeters)
        height = 8,       # Adjust height as needed
        dpi = 400)      # Set a high DPI (e.g., 300, 600, or higher)
 
 ggsave("my_high_res_plot_3plus.png", 
        plot = my_plot_3plus, 
-       width = 10,       # Adjust width as needed (e.g., in inches or centimeters)
+       width = 12,       # Adjust width as needed (e.g., in inches or centimeters)
        height = 8,       # Adjust height as needed
        dpi = 400)      # Set a high DPI (e.g., 300, 600, or higher)
 
 
 ggsave("my_high_res_plot_2.png", 
        plot = my_plot_2, 
-       width = 10,       # Adjust width as needed (e.g., in inches or centimeters)
+       width = 12,       # Adjust width as needed (e.g., in inches or centimeters)
        height = 8,       # Adjust height as needed
        dpi = 400)      # Set a high DPI (e.g., 300, 600, or higher)
 
 ggsave("my_high_res_plot_1.png", 
        plot = my_plot_1, 
-       width = 10,       # Adjust width as needed (e.g., in inches or centimeters)
+       width = 12,       # Adjust width as needed (e.g., in inches or centimeters)
        height = 8,       # Adjust height as needed
        dpi = 400)      # Set a high DPI (e.g., 300, 600, or higher)
 

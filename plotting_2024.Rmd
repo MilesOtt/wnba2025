@@ -16,6 +16,13 @@ wnba_college <- read_csv("wnba_college.csv")
 wnba_2024 <- read_csv('wnba_2024_season.csv')
 
 ```
+### checking out the colleges names
+
+```{r}
+colleges<- c(wnba_2024$college_1, wnba_2024$college_2, wnba_2024$college_3)
+
+table(colleges)
+```
 
 
 ### Doing a join of those 2 tables
